@@ -112,6 +112,12 @@ class ImageText:
         self.outline_color = outline_color
         self.full_outline = full_outline
 
+    def textsize(self, draw):
+        if hasattr(draw,'textsize'):
+            return draw.textsize(self.text, self.font)
+        _, _, width, height = draw.textbbox((0,0), text=self.text, font=self.font)
+        return width, height
+
     def render(self, draw, bounds):
         '''Renders the text onto an image within the specified bounding box.
 
@@ -124,7 +130,7 @@ class ImageText:
             The same :class:`PIL.ImageDraw.ImageDraw` object as was passed-in with text applied.
         '''
         (bx1, by1, bx2, by2) = bounds
-        text_width, text_height = draw.textsize(self.text, font=self.font)
+        text_width, text_height = self.textsize(draw)
 
         if self.position & TOP:
             y = by1
@@ -178,7 +184,8 @@ def add_img_box_to_image(image, box, color, text=None):
     x2, y2 = box.right_x, box.bottom_y
     d.rectangle([x1, y1, x2, y2], outline=color)
     if text is not None:
-        if isinstance(text, collections.Iterable):
+        if ((hasattr(collections,'Iterable') and isinstance(text, collections.Iterable)) or 
+                isinstance(text, collections.abc.Iterable)):
             for t in text:
                 t.render(d, (x1, y1, x2, y2))
         else:
